@@ -33,7 +33,7 @@ public class TextEditor extends JTextPane implements CaretListener {
 	private File file;
 
 	public TextEditor() {
-		this(new File(""));
+		this(new File("Untitled.txt"));
 	}
 
 
@@ -84,7 +84,7 @@ public class TextEditor extends JTextPane implements CaretListener {
 
 	}
 
-	public void saveDocument(){
+	public void saveDocument() {
 		try {
 			FileWriter fw = new FileWriter(file);
 			fw.write(this.getText());
@@ -190,8 +190,3 @@ public class TextEditor extends JTextPane implements CaretListener {
 		return false;
 	}
 }
-
-
-
-
-
