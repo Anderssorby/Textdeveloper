@@ -33,9 +33,8 @@ public class ErrorBox extends JFrame implements ActionListener {
 		JButton but = new JButton("ok");
 		but.addActionListener(this);
 		add(but);
-		pack();
 		setVisible(true);
-		setSize(new Dimension(120,100));
+		pack();
 		setTitle("Feilmelding");
 	}
 	

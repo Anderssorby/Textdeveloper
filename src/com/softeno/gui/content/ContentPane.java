@@ -5,7 +5,10 @@ package com.softeno.gui.content;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,9 +19,13 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
 
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
+import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -26,6 +33,8 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputListener;
@@ -43,7 +52,7 @@ import com.softeno.program.Program;
  * @author anders
  * 
  */
-public class ContentPane extends JPanel implements ActionListener,
+public class ContentPane extends JLayeredPane implements ActionListener,
 CommandConstants, MouseInputListener, ChangeListener {
 
 	private UndoManager undoEdit;
@@ -51,6 +60,7 @@ CommandConstants, MouseInputListener, ChangeListener {
 	private JTabbedPane tab;
 	private JPopupMenu menu;
 	private PopupListener popupListener;
+	private JPanel windowControls;
 
 	class PopupListener extends MouseAdapter {
 		public void mousePressed(MouseEvent e) {
@@ -69,6 +79,16 @@ CommandConstants, MouseInputListener, ChangeListener {
 		}
 	}
 
+	class DropListener implements FileDrop.Listener
+	{  
+		public void filesDropped(File[] files )
+		{   
+			for (File f : files) {
+				createEditor(f);
+			}
+		}   
+	}
+
 	public TextEditor getTextEditor() {
 		return textEditor;
 	}
@@ -79,26 +99,46 @@ CommandConstants, MouseInputListener, ChangeListener {
 
 	 public ContentPane() {
 		setLayout(new BorderLayout());
-		
-		new FileDrop( this, new FileDrop.Listener()
-		{   public void filesDropped( java.io.File[] files )
-		{   
-			for (File f : files) {
-				createEditor(f);
-			}
-		}   
-		}); 
-
+		Border b = BorderFactory.createBevelBorder(BevelBorder.RAISED, Color.GRAY, Color.DARK_GRAY);
+		setBorder(b);
+		setOpaque(false);
+		setBackground(new Color( 0, 0, 0 ,0));
+		initWindowControls();
 		initMenu();
 		initTab();
+		new FileDrop( tab, new DropListener()); 
 		addMouseListener(this);
 	 }
 	 
+	 private void initWindowControls() {
+		 windowControls = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
+		 ImageIcon icon = new ImageIcon("icons/close.png");
+		 icon.setImage(icon.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
+		 JButton close = new JButton(icon);
+		 close.setToolTipText("close");
+		 close.setPreferredSize(new Dimension(20, 20));
+		 close.setActionCommand(CM_EXIT);
+		 close.addActionListener(Program.getCurrentProgram());
+		 windowControls.add(close);
+		 windowControls.setSize(new Dimension(50, 20));
+		 int width = Program.getCurrentProgram().getMainWindow().getWidth();
+		 windowControls.setLocation(width-windowControls.getWidth()-2, 2);
+		 setLayer(windowControls, 10);
+		 add(windowControls);
+	 }
+	 
+	 public void updateUI() {
+		 super.updateUI();
+	 }
+	 
 	 private void initTab() {
-		 tab = new JTabbedPane();
+		 tab = new TabView();
+		 tab.setOpaque(false);
+		 tab.setBackground(new Color( 0, 0, 0 ,0));
 		 tab.addChangeListener(this);
 		 tab.addMouseListener(popupListener);
-		 add(tab, BorderLayout.CENTER);
+		 setLayer(tab, 1);
+		 add(tab);
 
 		 undoEdit = new UndoManager();
 	 }
@@ -121,10 +161,6 @@ CommandConstants, MouseInputListener, ChangeListener {
 		 save.setActionCommand(CM_FILE_SAVE);
 		 save.addActionListener(this);
 		 mFile.add(save);
-		 mFile.addSeparator();
-		 JMenuItem dokill = new JMenuItem("Avslutt");
-		 dokill.setActionCommand(CM_EXIT);
-		 mFile.add(dokill);
 		 menu.add(mFile);
 
 		 JMenu edit = new JMenu("Rediger");
@@ -152,6 +188,11 @@ CommandConstants, MouseInputListener, ChangeListener {
 		 farg.setActionCommand(CM_COLOR);
 		 farg.addActionListener(this);
 		 win.add(farg);
+		 win.addSeparator();
+		 JMenuItem dokill = new JMenuItem("Avslutt");
+		 dokill.setActionCommand(CM_EXIT);
+		 dokill.addActionListener(Program.getCurrentProgram());
+		 win.add(dokill);
 		 menu.add(win);
 
 	 }
@@ -205,8 +246,6 @@ CommandConstants, MouseInputListener, ChangeListener {
 		 } else if (cmd.equals(CM_NEW)) {
 			 createEditor(null);
 			 repaint();
-		 } else if (cmd.equals(CM_EXIT)) {
-			 System.exit(0);
 		 } else if (cmd.equals(CM_COLOR)) {
 			 Color c = JColorChooser.showDialog(this, "selectColor", null);
 			 if (c != null) {
@@ -251,7 +290,6 @@ CommandConstants, MouseInputListener, ChangeListener {
 			 file = textEditor.getFile();
 		 } else {
 			 textEditor = new TextEditor(file);
-
 		 }
 		 textEditor.getStyledDocument().addUndoableEditListener(undoEdit);
 		 textEditor.addMouseListener(popupListener);
@@ -281,26 +319,27 @@ CommandConstants, MouseInputListener, ChangeListener {
 
 	 @Override
 	 public void mouseEntered(MouseEvent e) {
-		 // TODO Auto-generated method stub
 
 	 }
 
 	 @Override
 	 public void mouseExited(MouseEvent e) {
-		 // TODO Auto-generated method stub
 
 	 }
 
 	 @Override
 	 public void mouseDragged(MouseEvent e) {
-		 // TODO Auto-generated method stub
 
 	 }
 
 	 @Override
 	 public void mouseMoved(MouseEvent e) {
-		 // TODO Auto-generated method stub
 
+	 }
+	 
+	 @Override
+	 public void paint(Graphics g) {
+		 super.paint(g);
 	 }
 
 	 @Override

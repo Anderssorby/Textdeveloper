@@ -3,10 +3,13 @@
  */
 package com.softeno.program;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 
 import javax.swing.text.StyledDocument;
 
+import com.softeno.gui.CommandConstants;
 import com.softeno.gui.MainWindow;
 import com.softeno.gui.editor.TextEditor;
 
@@ -14,7 +17,7 @@ import com.softeno.gui.editor.TextEditor;
  * @author anders
  *
  */
-public class Program {
+public class Program implements ActionListener, CommandConstants {
 	
 	private static Program currentProgram;
 	
@@ -71,6 +74,14 @@ public class Program {
 
 	public TextEditor getActiveEditor() {
 		return activeEditor;
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		String cmd = e.getActionCommand();
+		if (cmd.equals(CM_EXIT)) {
+			 System.exit(0);
+		 }
 	}
 
 }
