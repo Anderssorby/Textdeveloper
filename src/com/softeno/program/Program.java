@@ -3,6 +3,7 @@
  */
 package com.softeno.program;
 
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -81,6 +82,10 @@ public class Program implements ActionListener, CommandConstants {
 		String cmd = e.getActionCommand();
 		if (cmd.equals(CM_EXIT)) {
 			 System.exit(0);
+		 } else if (cmd.equals(CM_MAXIMIZE)) {
+			 getMainWindow().setState(Frame.MAXIMIZED_BOTH);
+		 } else if (cmd.equals(CM_MINIMIZE)) {
+			 getMainWindow().setState(Frame.ICONIFIED);
 		 }
 	}
 

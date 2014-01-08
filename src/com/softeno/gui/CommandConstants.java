@@ -2,6 +2,9 @@ package com.softeno.gui;
 
 public interface CommandConstants {
 
+	static final String CM_MINIMIZE = "CM_MINIMIZE";
+	static final String CM_MAXIMIZE = "CM_MAXIMIZE";
+	
 	static final String CM_CLOSE_TAB = "CM_CLOSE_TAB";
 	static final String CM_EXIT = "CM_EXIT";
 	

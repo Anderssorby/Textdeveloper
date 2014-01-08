@@ -25,6 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -32,6 +33,8 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
@@ -61,6 +64,7 @@ CommandConstants, MouseInputListener, ChangeListener {
 	private JPopupMenu menu;
 	private PopupListener popupListener;
 	private JPanel windowControls;
+	private JLabel statusText;
 
 	class PopupListener extends MouseAdapter {
 		public void mousePressed(MouseEvent e) {
@@ -97,7 +101,7 @@ CommandConstants, MouseInputListener, ChangeListener {
 	 * 
 	 */
 
-	 public ContentPane() {
+	public ContentPane() {
 		setLayout(new BorderLayout());
 		Border b = BorderFactory.createBevelBorder(BevelBorder.RAISED, Color.GRAY, Color.DARK_GRAY);
 		setBorder(b);
@@ -106,253 +110,291 @@ CommandConstants, MouseInputListener, ChangeListener {
 		initWindowControls();
 		initMenu();
 		initTab();
+		initStatusText();
 		new FileDrop( tab, new DropListener()); 
 		addMouseListener(this);
-	 }
-	 
-	 private void initWindowControls() {
-		 windowControls = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
-		 ImageIcon icon = new ImageIcon("icons/close.png");
-		 icon.setImage(icon.getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT));
-		 JButton close = new JButton(icon);
-		 close.setToolTipText("close");
-		 close.setPreferredSize(new Dimension(20, 20));
-		 close.setActionCommand(CM_EXIT);
-		 close.addActionListener(Program.getCurrentProgram());
-		 windowControls.add(close);
-		 windowControls.setSize(new Dimension(50, 20));
-		 int width = Program.getCurrentProgram().getMainWindow().getWidth();
-		 windowControls.setLocation(width-windowControls.getWidth()-2, 2);
-		 setLayer(windowControls, 10);
-		 add(windowControls);
-	 }
-	 
-	 public void updateUI() {
-		 super.updateUI();
-	 }
-	 
-	 private void initTab() {
-		 tab = new TabView();
-		 tab.setOpaque(false);
-		 tab.setBackground(new Color( 0, 0, 0 ,0));
-		 tab.addChangeListener(this);
-		 tab.addMouseListener(popupListener);
-		 setLayer(tab, 1);
-		 add(tab);
+	}
 
-		 undoEdit = new UndoManager();
-	 }
+	private void initWindowControls() {
+		windowControls = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
+		
+		ImageIcon icon = new ImageIcon("icons/minimize.png");
+		icon.setImage(icon.getImage().getScaledInstance(18, 18, Image.SCALE_DEFAULT));
+		JButton minim = new JButton(icon);
+		minim.setToolTipText("minimize");
+		minim.setPreferredSize(new Dimension(20, 20));
+		minim.setActionCommand(CM_MINIMIZE);
+		minim.addActionListener(Program.getCurrentProgram());
+		windowControls.add(minim);
+		
+		icon = new ImageIcon("icons/maximize.png");
+		icon.setImage(icon.getImage().getScaledInstance(18, 18, Image.SCALE_DEFAULT));
+		JButton maxim = new JButton(icon);
+		maxim.setToolTipText("maximize");
+		maxim.setPreferredSize(new Dimension(20, 20));
+		maxim.setActionCommand(CM_MAXIMIZE);
+		maxim.addActionListener(Program.getCurrentProgram());
+		windowControls.add(maxim);
+		
+		icon = new ImageIcon("icons/close.png");
+		icon.setImage(icon.getImage().getScaledInstance(18, 18, Image.SCALE_DEFAULT));
+		JButton close = new JButton(icon);
+		close.setToolTipText("close");
+		close.setPreferredSize(new Dimension(20, 20));
+		close.setActionCommand(CM_EXIT);
+		close.addActionListener(Program.getCurrentProgram());
+		windowControls.add(close);
+		
+		windowControls.setSize(new Dimension(60, 20));
+		int width = Program.getCurrentProgram().getMainWindow().getWidth();
+		windowControls.setLocation(width-windowControls.getWidth()-3, 3);
+		setLayer(windowControls, 10);
+		add(windowControls);
+	}
 
-	 private void initMenu() {
-		 menu = new JPopupMenu();
-		 popupListener = new PopupListener();
+	public void updateUI() {
+		super.updateUI();
+	}
 
-		 JMenu mFile = new JMenu("Fil");
-		 JMenuItem ny = new JMenuItem("Ny", UIManager.getIcon("FileView.fileIcon"));
-		 ny.setActionCommand(CM_NEW);
-		 ny.addActionListener(this);
-		 mFile.add(ny);
-		 JMenuItem open = new JMenuItem("Åpne");
-		 open.setActionCommand(CM_FILE_OPEN);
-		 open.addActionListener(this);
-		 mFile.add(open);
-		 JMenuItem save = new JMenuItem("Lagre", UIManager.getIcon("FileView.floppyDriveIcon"));
-		 save.setMnemonic(KeyEvent.VK_S);
-		 save.setActionCommand(CM_FILE_SAVE);
-		 save.addActionListener(this);
-		 mFile.add(save);
-		 menu.add(mFile);
+	private void initTab() {
+		tab = new TabView();
+		tab.setOpaque(false);
+		tab.setBackground(new Color( 0, 0, 0 ,0));
+		tab.addChangeListener(this);
+		tab.addMouseListener(popupListener);
+		setLayer(tab, 1);
+		add(tab);
 
-		 JMenu edit = new JMenu("Rediger");
-		 JMenuItem undo = new JMenuItem("Angre");
-		 undo.setActionCommand(CM_UNDO);
-		 undo.addActionListener(this);
-		 edit.add(undo);
-		 JMenuItem redo = new JMenuItem("Gjør om");
-		 redo.setActionCommand(CM_REDO);
-		 redo.addActionListener(this);
-		 edit.add(redo);
-		 edit.addSeparator();
-		 JCheckBoxMenuItem bvw = new JCheckBoxMenuItem("Byte view");
-		 bvw.setActionCommand(CM_VIEW_BYTE);
-		 bvw.addActionListener(this);
-		 edit.add(bvw);
-		 menu.add(edit);
+		undoEdit = new UndoManager();
+	}
 
-		 JMenu win = new JMenu("Window");
-		 JMenuItem clt = new JMenuItem("Lukk fane");
-		 clt.setActionCommand(CM_CLOSE_TAB);
-		 clt.addActionListener(this);
-		 win.add(clt);
-		 JMenuItem farg = new JMenuItem("Farge");
-		 farg.setActionCommand(CM_COLOR);
-		 farg.addActionListener(this);
-		 win.add(farg);
-		 win.addSeparator();
-		 JMenuItem dokill = new JMenuItem("Avslutt");
-		 dokill.setActionCommand(CM_EXIT);
-		 dokill.addActionListener(Program.getCurrentProgram());
-		 win.add(dokill);
-		 menu.add(win);
+	private void initStatusText() {
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
+		panel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		int height = Program.getCurrentProgram().getMainWindow().getHeight();
+		statusText = new JLabel("");
+		statusText.setHorizontalAlignment(SwingConstants.LEFT);
+		statusText.setPreferredSize(new Dimension(100, 20));
+		panel.add(statusText);
+		panel.setLocation(0, height-20);
+		panel.setSize(new Dimension(100, 20));
+		setLayer(panel, 9);
+//		add(panel);
+	}
 
-	 }
-	 
-	 private void saveDocumentAs() {
-		 JFileChooser chooser = new JFileChooser(textEditor.getFile());
-			FileNameExtensionFilter filter = new FileNameExtensionFilter(
-					"text files", "txt");
-			chooser.addChoosableFileFilter(filter);
+	private void initMenu() {
+		menu = new JPopupMenu();
+		popupListener = new PopupListener();
+
+		JMenu mFile = new JMenu("Fil");
+		JMenuItem ny = new JMenuItem("Ny", UIManager.getIcon("FileView.fileIcon"));
+		ny.setActionCommand(CM_NEW);
+		ny.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.VK_CONTROL));
+		ny.addActionListener(this);
+		mFile.add(ny);
+		JMenuItem open = new JMenuItem("Åpne");
+		open.setActionCommand(CM_FILE_OPEN);
+		open.addActionListener(this);
+		open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.VK_CONTROL));
+		mFile.add(open);
+		JMenuItem save = new JMenuItem("Lagre", UIManager.getIcon("FileView.floppyDriveIcon"));
+		save.setMnemonic(KeyEvent.VK_S);
+		save.setActionCommand(CM_FILE_SAVE);
+		save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.VK_CONTROL));
+		save.addActionListener(this);
+		mFile.add(save);
+		menu.add(mFile);
+
+		JMenu edit = new JMenu("Rediger");
+		JMenuItem undo = new JMenuItem("Angre");
+		undo.setActionCommand(CM_UNDO);
+		undo.addActionListener(this);
+		edit.add(undo);
+		JMenuItem redo = new JMenuItem("Gjør om");
+		redo.setActionCommand(CM_REDO);
+		redo.addActionListener(this);
+		edit.add(redo);
+		edit.addSeparator();
+		JCheckBoxMenuItem bvw = new JCheckBoxMenuItem("Byte view");
+		bvw.setActionCommand(CM_VIEW_BYTE);
+		bvw.addActionListener(this);
+		edit.add(bvw);
+		menu.add(edit);
+
+		JMenu win = new JMenu("Window");
+		JMenuItem clt = new JMenuItem("Lukk fane");
+		clt.setActionCommand(CM_CLOSE_TAB);
+		clt.addActionListener(this);
+		win.add(clt);
+		JMenuItem farg = new JMenuItem("Farge");
+		farg.setActionCommand(CM_COLOR);
+		farg.addActionListener(this);
+		win.add(farg);
+		win.addSeparator();
+		JMenuItem dokill = new JMenuItem("Avslutt");
+		dokill.setActionCommand(CM_EXIT);
+		dokill.addActionListener(Program.getCurrentProgram());
+		win.add(dokill);
+		menu.add(win);
+
+	}
+
+	private void saveDocumentAs() {
+		JFileChooser chooser = new JFileChooser(textEditor.getFile());
+		FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				"text files", "txt");
+		chooser.addChoosableFileFilter(filter);
+		Program pm = Program.getCurrentProgram();
+		MainWindow mainWin = pm.getMainWindow();
+		int returnVal = chooser.showSaveDialog(mainWin);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File selected = chooser.getSelectedFile();
+			if (textEditor.setFile(selected)) {
+				textEditor.saveDocument();
+				int idx = tab.getSelectedIndex();
+				tab.setTitleAt(idx, selected.getName());
+				tab.setIconAt(idx, UIManager.getIcon("FileView.fileIcon"));
+				tab.setToolTipTextAt(idx, selected.getPath());
+				repaint();
+			}
+		}
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		String cmd = e.getActionCommand();
+		if (cmd.equals(CM_FILE_SAVE)) {
+			if (textEditor.getFile().exists()) {
+				textEditor.saveDocument();
+			} else {
+				saveDocumentAs();
+			}
+		} else if (cmd.equals(CM_FILE_OPEN)) {
 			Program pm = Program.getCurrentProgram();
 			MainWindow mainWin = pm.getMainWindow();
-			int returnVal = chooser.showSaveDialog(mainWin);
+			JFileChooser chooser = new JFileChooser();
+			FileNameExtensionFilter filterTxt = new FileNameExtensionFilter(
+					"tekstfiler", "txt");
+			FileNameExtensionFilter filterAs = new FileNameExtensionFilter(
+					"Action Script source files", "as");
+			chooser.addChoosableFileFilter(filterAs);
+			chooser.addChoosableFileFilter(filterTxt);
+			int returnVal = chooser.showOpenDialog(mainWin);
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				File selected = chooser.getSelectedFile();
-				if (textEditor.setFile(selected)) {
-					textEditor.saveDocument();
-					int idx = tab.getSelectedIndex();
-					tab.setTitleAt(idx, selected.getName());
-					tab.setIconAt(idx, UIManager.getIcon("FileView.fileIcon"));
-					tab.setToolTipTextAt(idx, selected.getPath());
-					repaint();
-				}
+				createEditor(selected);
+				repaint();
 			}
-	 }
+		} else if (cmd.equals(CM_NEW)) {
+			createEditor(null);
+			repaint();
+		} else if (cmd.equals(CM_COLOR)) {
+			Color c = JColorChooser.showDialog(this, "selectColor", null);
+			if (c != null) {
+				textEditor.setForeground(c);
+			}
+		} else if (cmd.equals(CM_UNDO)) {
+			try {
+				undoEdit.undo();
+			} catch (CannotUndoException r) {
 
-	 @Override
-	 public void actionPerformed(ActionEvent e) {
-		 String cmd = e.getActionCommand();
-		 if (cmd.equals(CM_FILE_SAVE)) {
-			 if (textEditor.getFile().exists()) {
-				 textEditor.saveDocument();
-			 } else {
-				saveDocumentAs();
-			 }
-		 } else if (cmd.equals(CM_FILE_OPEN)) {
-			 Program pm = Program.getCurrentProgram();
-			 MainWindow mainWin = pm.getMainWindow();
-			 JFileChooser chooser = new JFileChooser();
-			 FileNameExtensionFilter filterTxt = new FileNameExtensionFilter(
-					 "tekstfiler", "txt");
-			 FileNameExtensionFilter filterAs = new FileNameExtensionFilter(
-					 "Action Script source files", "as");
-			 chooser.addChoosableFileFilter(filterAs);
-			 chooser.addChoosableFileFilter(filterTxt);
-			 int returnVal = chooser.showOpenDialog(mainWin);
-			 if (returnVal == JFileChooser.APPROVE_OPTION) {
-				 File selected = chooser.getSelectedFile();
-				 createEditor(selected);
-				 repaint();
-			 }
-		 } else if (cmd.equals(CM_NEW)) {
-			 createEditor(null);
-			 repaint();
-		 } else if (cmd.equals(CM_COLOR)) {
-			 Color c = JColorChooser.showDialog(this, "selectColor", null);
-			 if (c != null) {
-				 textEditor.setForeground(c);
-			 }
-		 } else if (cmd.equals(CM_UNDO)) {
-			 try {
-				 undoEdit.undo();
-			 } catch (CannotUndoException r) {
+			}
+		} else if (cmd.equals(CM_REDO)) {
+			try {
+				undoEdit.redo();
+			} catch (CannotUndoException r) {
 
-			 }
-		 } else if (cmd.equals(CM_REDO)) {
-			 try {
-				 undoEdit.redo();
-			 } catch (CannotUndoException r) {
+			}
+		} else if (cmd.equals(CM_CLOSE_TAB)) {
+			int indx = tab.getSelectedIndex();
+			if (indx != -1) {
+				tab.remove(indx);
+			}
+		} else if (cmd.equals(CM_VIEW_BYTE)) {
+			JCheckBoxMenuItem mit = (JCheckBoxMenuItem)e.getSource();
+			textEditor.enableByteView(mit.isSelected());
+		}
+	}
 
-			 }
-		 } else if (cmd.equals(CM_CLOSE_TAB)) {
-			 int indx = tab.getSelectedIndex();
-			 if (indx != -1) {
-				 tab.remove(indx);
-			 }
-		 } else if (cmd.equals(CM_VIEW_BYTE)) {
-			 JCheckBoxMenuItem mit = (JCheckBoxMenuItem)e.getSource();
-			 textEditor.enableByteView(mit.isSelected());
-		 }
-	 }
-	 
-	 @Override
-	 public void addMouseListener(MouseListener l) {
-		 tab.addMouseListener(l);
-	 }
-	 
-	 @Override
-	 public void addMouseMotionListener(MouseMotionListener l) {
-		 tab.addMouseMotionListener(l);
-	 }
+	@Override
+	public void addMouseListener(MouseListener l) {
+		tab.addMouseListener(l);
+	}
 
-	 public TextEditor createEditor(File file) {
-		 if (file == null) {
-			 textEditor = new TextEditor();
-			 file = textEditor.getFile();
-		 } else {
-			 textEditor = new TextEditor(file);
-		 }
-		 textEditor.getStyledDocument().addUndoableEditListener(undoEdit);
-		 textEditor.addMouseListener(popupListener);
-		 JScrollPane pane = new JScrollPane(textEditor);
-		 tab.addTab(file.getName(), UIManager.getIcon("FileView.fileIcon"), pane, file.getPath());
-		 int index = tab.indexOfComponent(pane);
-		 tab.setSelectedIndex(index);
-		 return textEditor;
-	 }
+	@Override
+	public void addMouseMotionListener(MouseMotionListener l) {
+		tab.addMouseMotionListener(l);
+	}
 
-	 @Override
-	 public void mouseClicked(MouseEvent e) {
-	 }
+	public TextEditor createEditor(File file) {
+		if (file == null) {
+			textEditor = new TextEditor();
+			file = textEditor.getFile();
+		} else {
+			textEditor = new TextEditor(file);
+		}
+		textEditor.getStyledDocument().addUndoableEditListener(undoEdit);
+		textEditor.addMouseListener(popupListener);
+		JScrollPane pane = new JScrollPane(textEditor);
+		tab.addTab(file.getName(), UIManager.getIcon("FileView.fileIcon"), pane, file.getPath());
+		int index = tab.indexOfComponent(pane);
+		tab.setSelectedIndex(index);
+		return textEditor;
+	}
 
-	 @Override
-	 public void mousePressed(MouseEvent e) {
+	@Override
+	public void mouseClicked(MouseEvent e) {
+	}
 
-	 }
+	@Override
+	public void mousePressed(MouseEvent e) {
 
-	 @Override
-	 public void mouseReleased(MouseEvent e) {
-		 Point p = e.getPoint();
-		 if (e.getButton() == MouseEvent.BUTTON3) {
-			 menu.show(this, p.x, p.y);
-		 }
-	 }
+	}
 
-	 @Override
-	 public void mouseEntered(MouseEvent e) {
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		Point p = e.getPoint();
+		if (e.getButton() == MouseEvent.BUTTON3) {
+			menu.show(this, p.x, p.y);
+		}
+	}
 
-	 }
+	@Override
+	public void mouseEntered(MouseEvent e) {
 
-	 @Override
-	 public void mouseExited(MouseEvent e) {
+	}
 
-	 }
+	@Override
+	public void mouseExited(MouseEvent e) {
 
-	 @Override
-	 public void mouseDragged(MouseEvent e) {
+	}
 
-	 }
+	@Override
+	public void mouseDragged(MouseEvent e) {
 
-	 @Override
-	 public void mouseMoved(MouseEvent e) {
+	}
 
-	 }
-	 
-	 @Override
-	 public void paint(Graphics g) {
-		 super.paint(g);
-	 }
+	@Override
+	public void mouseMoved(MouseEvent e) {
 
-	 @Override
-	 public void stateChanged(ChangeEvent e) {
-		 Object src = e.getSource();
-		 if (src.equals(tab)) {
-			 JTabbedPane pane = (JTabbedPane) src;
-			 JScrollPane sp = (JScrollPane) pane.getSelectedComponent();
-			 if (sp != null) {
-				 textEditor = (TextEditor) sp.getViewport().getComponent(0);
-			 } else {
-				 textEditor = null;
-			 }
-		 }
-	 }
+	}
+
+	@Override
+	public void paint(Graphics g) {
+		super.paint(g);
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		Object src = e.getSource();
+		if (src.equals(tab)) {
+			JTabbedPane pane = (JTabbedPane) src;
+			JScrollPane sp = (JScrollPane) pane.getSelectedComponent();
+			if (sp != null) {
+				textEditor = (TextEditor) sp.getViewport().getComponent(0);
+			} else {
+				textEditor = null;
+			}
+		}
+	}
 }
