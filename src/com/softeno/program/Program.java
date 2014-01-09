@@ -83,7 +83,8 @@ public class Program implements ActionListener, CommandConstants {
 		if (cmd.equals(CM_EXIT)) {
 			 System.exit(0);
 		 } else if (cmd.equals(CM_MAXIMIZE)) {
-			 getMainWindow().setState(Frame.MAXIMIZED_BOTH);
+			 MainWindow mwin = getMainWindow();
+			 mwin.setExtendedState(mwin.getExtendedState() | MainWindow.MAXIMIZED_BOTH);
 		 } else if (cmd.equals(CM_MINIMIZE)) {
 			 getMainWindow().setState(Frame.ICONIFIED);
 		 }

@@ -19,6 +19,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -111,13 +113,14 @@ CommandConstants, MouseInputListener, ChangeListener {
 		initMenu();
 		initTab();
 		initStatusText();
+		initKeyBindings();
 		new FileDrop( tab, new DropListener()); 
 		addMouseListener(this);
 	}
 
 	private void initWindowControls() {
 		windowControls = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
-		
+
 		ImageIcon icon = new ImageIcon("icons/minimize.png");
 		icon.setImage(icon.getImage().getScaledInstance(18, 18, Image.SCALE_DEFAULT));
 		JButton minim = new JButton(icon);
@@ -126,7 +129,7 @@ CommandConstants, MouseInputListener, ChangeListener {
 		minim.setActionCommand(CM_MINIMIZE);
 		minim.addActionListener(Program.getCurrentProgram());
 		windowControls.add(minim);
-		
+
 		icon = new ImageIcon("icons/maximize.png");
 		icon.setImage(icon.getImage().getScaledInstance(18, 18, Image.SCALE_DEFAULT));
 		JButton maxim = new JButton(icon);
@@ -135,7 +138,7 @@ CommandConstants, MouseInputListener, ChangeListener {
 		maxim.setActionCommand(CM_MAXIMIZE);
 		maxim.addActionListener(Program.getCurrentProgram());
 		windowControls.add(maxim);
-		
+
 		icon = new ImageIcon("icons/close.png");
 		icon.setImage(icon.getImage().getScaledInstance(18, 18, Image.SCALE_DEFAULT));
 		JButton close = new JButton(icon);
@@ -144,7 +147,7 @@ CommandConstants, MouseInputListener, ChangeListener {
 		close.setActionCommand(CM_EXIT);
 		close.addActionListener(Program.getCurrentProgram());
 		windowControls.add(close);
-		
+
 		windowControls.setSize(new Dimension(60, 20));
 		int width = Program.getCurrentProgram().getMainWindow().getWidth();
 		windowControls.setLocation(width-windowControls.getWidth()-3, 3);
@@ -162,10 +165,47 @@ CommandConstants, MouseInputListener, ChangeListener {
 		tab.setBackground(new Color( 0, 0, 0 ,0));
 		tab.addChangeListener(this);
 		tab.addMouseListener(popupListener);
+
 		setLayer(tab, 1);
 		add(tab);
 
 		undoEdit = new UndoManager();
+	}
+	
+	private void initKeyBindings() {
+		Action save = new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				save();
+			}
+		};
+		tab.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK),
+				CM_FILE_SAVE);
+		tab.getActionMap().put(CM_FILE_SAVE, save);
+		
+		Action open = new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				open();
+			}
+		};
+		tab.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK),
+				CM_FILE_OPEN);
+		tab.getActionMap().put(CM_FILE_OPEN, open);
+		
+		Action neww = new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				createEditor(null);
+				repaint();
+			}
+		};
+		tab.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK),
+				CM_NEW);
+		tab.getActionMap().put(CM_NEW, neww);
 	}
 
 	private void initStatusText() {
@@ -179,12 +219,13 @@ CommandConstants, MouseInputListener, ChangeListener {
 		panel.setLocation(0, height-20);
 		panel.setSize(new Dimension(100, 20));
 		setLayer(panel, 9);
-//		add(panel);
+		//		add(panel);
 	}
 
 	private void initMenu() {
 		menu = new JPopupMenu();
 		popupListener = new PopupListener();
+
 
 		JMenu mFile = new JMenu("Fil");
 		JMenuItem ny = new JMenuItem("Ny", UIManager.getIcon("FileView.fileIcon"));
@@ -197,12 +238,11 @@ CommandConstants, MouseInputListener, ChangeListener {
 		open.addActionListener(this);
 		open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.VK_CONTROL));
 		mFile.add(open);
-		JMenuItem save = new JMenuItem("Lagre", UIManager.getIcon("FileView.floppyDriveIcon"));
-		save.setMnemonic(KeyEvent.VK_S);
-		save.setActionCommand(CM_FILE_SAVE);
-		save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.VK_CONTROL));
-		save.addActionListener(this);
-		mFile.add(save);
+		JMenuItem save1 = new JMenuItem("Lagre", UIManager.getIcon("FileView.floppyDriveIcon"));
+		save1.setMnemonic(KeyEvent.VK_S);
+		save1.setActionCommand(CM_FILE_SAVE);
+		save1.addActionListener(this);
+		mFile.add(save1);
 		menu.add(mFile);
 
 		JMenu edit = new JMenu("Rediger");
@@ -264,27 +304,9 @@ CommandConstants, MouseInputListener, ChangeListener {
 	public void actionPerformed(ActionEvent e) {
 		String cmd = e.getActionCommand();
 		if (cmd.equals(CM_FILE_SAVE)) {
-			if (textEditor.getFile().exists()) {
-				textEditor.saveDocument();
-			} else {
-				saveDocumentAs();
-			}
+			save();
 		} else if (cmd.equals(CM_FILE_OPEN)) {
-			Program pm = Program.getCurrentProgram();
-			MainWindow mainWin = pm.getMainWindow();
-			JFileChooser chooser = new JFileChooser();
-			FileNameExtensionFilter filterTxt = new FileNameExtensionFilter(
-					"tekstfiler", "txt");
-			FileNameExtensionFilter filterAs = new FileNameExtensionFilter(
-					"Action Script source files", "as");
-			chooser.addChoosableFileFilter(filterAs);
-			chooser.addChoosableFileFilter(filterTxt);
-			int returnVal = chooser.showOpenDialog(mainWin);
-			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				File selected = chooser.getSelectedFile();
-				createEditor(selected);
-				repaint();
-			}
+			open();
 		} else if (cmd.equals(CM_NEW)) {
 			createEditor(null);
 			repaint();
@@ -313,6 +335,32 @@ CommandConstants, MouseInputListener, ChangeListener {
 		} else if (cmd.equals(CM_VIEW_BYTE)) {
 			JCheckBoxMenuItem mit = (JCheckBoxMenuItem)e.getSource();
 			textEditor.enableByteView(mit.isSelected());
+		}
+	}
+
+	private void save() {
+		if (textEditor.getFile().exists()) {
+			textEditor.saveDocument();
+		} else {
+			saveDocumentAs();
+		}
+	}
+
+	private void open() {
+		Program pm = Program.getCurrentProgram();
+		MainWindow mainWin = pm.getMainWindow();
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filterTxt = new FileNameExtensionFilter(
+				"tekstfiler", "txt");
+		FileNameExtensionFilter filterAs = new FileNameExtensionFilter(
+				"Action Script source files", "as");
+		chooser.addChoosableFileFilter(filterAs);
+		chooser.addChoosableFileFilter(filterTxt);
+		int returnVal = chooser.showOpenDialog(mainWin);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File selected = chooser.getSelectedFile();
+			createEditor(selected);
+			repaint();
 		}
 	}
 
