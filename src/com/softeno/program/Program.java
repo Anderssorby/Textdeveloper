@@ -7,6 +7,8 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import javax.swing.text.StyledDocument;
 
@@ -88,6 +90,22 @@ public class Program implements ActionListener, CommandConstants {
 		 } else if (cmd.equals(CM_MINIMIZE)) {
 			 getMainWindow().setState(Frame.ICONIFIED);
 		 }
+	}
+	
+	public static URL findResource(String name) {
+		URL url = null;
+		try {
+			File file = new File(name);
+			if (!file.exists()) {
+				ClassLoader cl = Program.class.getClassLoader();
+				url = cl.getResource(name);
+			} else {
+				url = file.toURI().toURL();
+			}
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		return url;
 	}
 
 }

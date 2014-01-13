@@ -121,7 +121,7 @@ CommandConstants, MouseInputListener, ChangeListener {
 	private void initWindowControls() {
 		windowControls = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
 
-		ImageIcon icon = new ImageIcon("icons/minimize.png");
+		ImageIcon icon = new ImageIcon(Program.findResource("icons/minimize.png"));
 		icon.setImage(icon.getImage().getScaledInstance(18, 18, Image.SCALE_DEFAULT));
 		JButton minim = new JButton(icon);
 		minim.setToolTipText("minimize");
@@ -130,7 +130,7 @@ CommandConstants, MouseInputListener, ChangeListener {
 		minim.addActionListener(Program.getCurrentProgram());
 		windowControls.add(minim);
 
-		icon = new ImageIcon("icons/maximize.png");
+		icon = new ImageIcon(Program.findResource("icons/maximize.png"));
 		icon.setImage(icon.getImage().getScaledInstance(18, 18, Image.SCALE_DEFAULT));
 		JButton maxim = new JButton(icon);
 		maxim.setToolTipText("maximize");
@@ -139,7 +139,7 @@ CommandConstants, MouseInputListener, ChangeListener {
 		maxim.addActionListener(Program.getCurrentProgram());
 		windowControls.add(maxim);
 
-		icon = new ImageIcon("icons/close.png");
+		icon = new ImageIcon(Program.findResource("icons/close.png"));
 		icon.setImage(icon.getImage().getScaledInstance(18, 18, Image.SCALE_DEFAULT));
 		JButton close = new JButton(icon);
 		close.setToolTipText("close");

@@ -14,6 +14,7 @@ import java.awt.event.MouseMotionListener;
 import javax.swing.*;
 
 import com.softeno.gui.content.ContentPane;
+import com.softeno.program.Program;
 
 /**
  * @author anders
@@ -40,7 +41,7 @@ MouseListener, MouseMotionListener {
 		setSize(600, 600);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-		setIconImage(new ImageIcon("icons/accessories_text_editor.png").getImage());
+		setIconImage(new ImageIcon(Program.findResource("icons/accessories_text_editor.png")).getImage());
 	}
 
 	public void initMainWin() {
