@@ -206,6 +206,36 @@ CommandConstants, MouseInputListener, ChangeListener {
 		tab.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK),
 				CM_NEW);
 		tab.getActionMap().put(CM_NEW, neww);
+		
+		Action undo = new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					undoEdit.undo();
+				} catch (CannotUndoException r) {
+
+				}
+			}
+		};
+		tab.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK),
+				CM_UNDO);
+		tab.getActionMap().put(CM_UNDO, undo);
+		
+		Action redo = new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					undoEdit.redo();
+				} catch (CannotUndoException r) {
+
+				}
+			}
+		};
+		tab.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK),
+				CM_REDO);
+		tab.getActionMap().put(CM_REDO, redo);
 	}
 
 	private void initStatusText() {
