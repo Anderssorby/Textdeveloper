@@ -29,6 +29,11 @@ public class TabView extends JTabbedPane implements CommandConstants {
 	}
 	
 	@Override
+	public void updateUI() {
+		setUI(new TabViewUI());
+	}
+	
+	@Override
 	public void paint(Graphics g) {
 		Graphics2D g2 = (Graphics2D)g;
 		paintComponent(g2);
